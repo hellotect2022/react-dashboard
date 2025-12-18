@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxy Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Proxy 테스트</h1>
+  
+  <button onclick="testProxy()">프록시 테스트 (POST)</button>
+  <button onclick="testDirect()">직접 연결 테스트 (CORS 에러 예상)</button>
+  <button onclick="clearResult()">결과 지우기</button>
+  
+  <div id="result"></div>
+
+  <script>
+    const resultDiv = document.getElementById('result');
+
+    function log(message) {
+      console.log(message);
+      resultDiv.textContent += message + '\n';
+    }
+
+    function clearResult() {
+      resultDiv.textContent = '';
+    }
+
+    async function testProxy() {
+      clearResult();
+      log('=== 프록시 테스트 시작 ===');
+      log('URL: /twinx-api/api/v1/users/login');
+      log('');
+
+      try {
+        const response = await fetch('/twinx-api/api/v1/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: 'test',
+            password: 'test'
+          })
+        });
+
+        log(`✅ 응답 상태: ${response.status} ${response.statusText}`);
+        
+        const data = await response.text();
+        log(`응답 데이터: ${data}`);
+        
+      } catch (error) {
+        log(`❌ 에러: ${error.message}`);
+      }
+    }
+
+    async function testDirect() {
+      clearResult();
+      log('=== 직접 연결 테스트 (CORS 에러 예상) ===');
+      log('URL: http://192.168.10.218:8080/twinx-api/api/v1/users/login');
+      log('');
+
+      try {
+        const response = await fetch('http://192.168.10.218:8080/twinx-api/api/v1/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: 'test',
+            password: 'test'
+          })
+        });
+
+        log(`✅ 응답 상태: ${response.status} ${response.statusText}`);
+        
+        const data = await response.text();
+        log(`응답 데이터: ${data}`);
+        
+      } catch (error) {
+        log(`❌ CORS 에러: ${error.message}`);
+      }
+    }
+  </script>
+</body>
+</html>
+
