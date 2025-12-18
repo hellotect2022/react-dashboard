@@ -1,14 +1,43 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {GridLayout,ReactGridLayout, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { useNavigate } from 'react-router-dom';
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import CardLayout from '../components/card/CardLayout';
+import { sseAPI } from '../api/api';
 
 
 export default function Dashboard() {
+  const [sseData, setSseData] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  // SSE 연결 (컴포넌트 마운트 시)
+  useEffect(() => {
+    // SSE 연결 - 기본 메시지 수신
+    const disconnect = sseAPI.connect(
+      '/api/sse/events',  // SSE 엔드포인트 (백엔드 경로에 맞게 수정)
+      (data) => {
+        // 메시지 수신 시 처리
+        console.log('📨 실시간 데이터:', data);
+        setSseData(data);
+        setIsConnected(true);
+      },
+      (error) => {
+        // 에러 발생 시 처리
+        console.error('SSE 연결 에러:', error);
+        setIsConnected(false);
+      }
+    );
+
+    // 컴포넌트 언마운트 시 연결 종료
+    return () => {
+      disconnect();
+      setIsConnected(false);
+    };
+  }, []); // 빈 배열: 마운트/언마운트 시에만 실행
+
   // 그리드 레이아웃 설정
   const layout = [
     { i: 'system-health', x: 0, y: 0, w: 4, h: 2, minW: 2, minH: 2, maxW: 12, maxH: 10 },
@@ -60,6 +89,17 @@ export default function Dashboard() {
     { name: 'Temp & Humid', value: 6 },
   ];
 
+  const style = {
+    top: '50%',
+    right: 0,
+    transform: 'translate(0, -50%)',
+    lineHeight: '24px',
+  };    
+
+  const data = [
+    {name: 'a', value:95, fill:'#FF6B6B'},
+  ]
+
   return (
       <div ref={containerRef}>
         {mounted && (
@@ -75,7 +115,46 @@ export default function Dashboard() {
             compactType={null}
             preventCollision={false}
           >
-            <CardLayout key="system-health" title="SYSTEM HEALTH"></CardLayout>
+            <CardLayout key="system-health" title="SYSTEM HEALTH">
+              <ResponsiveContainer width="100%" className="border-2 border-red-500">
+                <RadialBarChart
+                  responsive
+                  cx="50%"
+                  barSize={5}
+                  data={data}
+                  innerRadius="90%"
+                  outerRadius="100%"
+                  startAngle={-90}
+                  endAngle={270}
+                >
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                  <RadialBar background={{ fill: '#fff' }} dataKey="value" />
+                  {/* <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={style} /> */}
+                </RadialBarChart>
+            
+              </ResponsiveContainer>
+              {/* 2. 중앙 텍스트 (사이즈/색상 마음대로 조절 가능) */}
+              <div className="absolute flex flex-col items-center justify-center">
+                {/* 숫자와 %가 나란히 있는 상단 영역 */}
+                <div className="flex items-baseline">
+                  {/* 95 숫자: 크고 굵게 */}
+                  <span className="text-4xl font-black text-cyan-400 leading-none">
+                    {data[0].value}
+                  </span>
+                  {/* % 기호: 숫자보다 작게, 살짝 띄워서 */}
+                  <span className="text-2xl font-bold text-cyan-400 ml-1">
+                    %
+                  </span>
+                </div>
+
+                {/* 하단 설명 문구: 회색톤으로 아래에 배치 */}
+                <span className="text-sm font-medium text-gray-400 mt-2 tracking-wide">
+                  At Health
+                </span>
+              </div>
+                
+            </CardLayout>
+            
             <CardLayout key="ai-alerts" title="AI ALERTS">
               <div className='flex w-full justify-evenly'>
                 <div className='flex flex-col items-center'> 

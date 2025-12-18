@@ -125,6 +125,87 @@ export const dashboardAPI = {
   }
 };
 
+// SSE (Server-Sent Events) API
+export const sseAPI = {
+  // SSE 연결 생성
+  connect: (endpoint, onMessage, onError) => {
+    const baseURL = getBaseURL();
+    const url = `${baseURL}${endpoint}`;
+    
+    console.log('🔌 SSE 연결 시도:', url);
+    
+    const eventSource = new EventSource(url, { withCredentials: true });
+    
+    // 메시지 수신
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('📨 SSE 메시지 수신:', data);
+        onMessage(data);
+      } catch (error) {
+        console.error('❌ SSE 데이터 파싱 에러:', error);
+        onMessage(event.data);
+      }
+    };
+    
+    // 연결 성공
+    eventSource.onopen = () => {
+      console.log('✅ SSE 연결 성공:', url);
+    };
+    
+    // 에러 발생
+    eventSource.onerror = (error) => {
+      console.error('❌ SSE 연결 에러:', error);
+      if (onError) onError(error);
+    };
+    
+    // 연결 종료 함수 반환
+    return () => {
+      console.log('🔌 SSE 연결 종료');
+      eventSource.close();
+    };
+  },
+  
+  // 특정 이벤트 타입 구독
+  subscribe: (endpoint, eventType, onMessage, onError) => {
+    const baseURL = getBaseURL();
+    const url = `${baseURL}${endpoint}`;
+    
+    console.log(`🔌 SSE 연결 시도 (${eventType}):`, url);
+    
+    const eventSource = new EventSource(url, { withCredentials: true });
+    
+    // 특정 이벤트 타입 리스닝
+    eventSource.addEventListener(eventType, (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log(`📨 SSE 메시지 수신 (${eventType}):`, data);
+        onMessage(data);
+      } catch (error) {
+        console.error('❌ SSE 데이터 파싱 에러:', error);
+        onMessage(event.data);
+      }
+    });
+    
+    // 연결 성공
+    eventSource.onopen = () => {
+      console.log(`✅ SSE 연결 성공 (${eventType}):`, url);
+    };
+    
+    // 에러 발생
+    eventSource.onerror = (error) => {
+      console.error(`❌ SSE 연결 에러 (${eventType}):`, error);
+      if (onError) onError(error);
+    };
+    
+    // 연결 종료 함수 반환
+    return () => {
+      console.log(`🔌 SSE 연결 종료 (${eventType})`);
+      eventSource.close();
+    };
+  }
+};
+
 // 기본 export
 export default api;
 
