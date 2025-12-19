@@ -129,7 +129,7 @@ export const dashboardAPI = {
 export const sseAPI = {
   // SSE 연결 생성
   connect: (endpoint, onMessage, onError) => {
-    const baseURL = getBaseURL();
+    const baseURL = "http://localhost:3001"
     const url = `${baseURL}${endpoint}`;
     
     console.log('🔌 SSE 연결 시도:', url);
@@ -140,7 +140,7 @@ export const sseAPI = {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('📨 SSE 메시지 수신:', data);
+        //console.log('📨 SSE 메시지 수신:', data);
         onMessage(data);
       } catch (error) {
         console.error('❌ SSE 데이터 파싱 에러:', error);

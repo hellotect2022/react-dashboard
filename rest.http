@@ -14,3 +14,12 @@ Content-Type: application/json
     "userLoginId" : "dhhan",
     "newPassword" : "1111"
 }
+
+
+### SSE livecheck
+http://192.168.10.218:3001/test/livecheck
+
+### SSE 
+http://192.168.10.218:3001/test/stream
+Content-Type: text/event-stream;charset=UTF-8
+transfer-encoding: chunked

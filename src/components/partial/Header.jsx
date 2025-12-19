@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import PasswordChangeModal from '../modal/PasswordChangeModal';
-import { authAPI } from '../../api/api';
+import { useAuth } from '@/context/AuthContext';
+import { COLORS } from '@/constants/colors';
+import { Bell, ChevronDown, ChevronRight, User } from 'lucide-react';
 
 
 export default function Header({ onToggleSidebar, isSidebarOpen}) {
@@ -61,66 +62,45 @@ export default function Header({ onToggleSidebar, isSidebarOpen}) {
 
   return (
     <header className="bg-white shadow-md fixed top-0 right-0 left-0 h-16 z-30 transition-all duration-300"
-      style={{ left: isSidebarOpen ? '16rem' : '0' }}
+      style={{ left: isSidebarOpen ? '16rem' : '0' , backgroundColor: COLORS.navBg}}
     >
       <div className="h-full px-4 flex items-center justify-between">
         {/* 왼쪽: 사이드바 토글 버튼 */}
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="Toggle Sidebar"
-        >
-          <svg
-            className={`w-6 h-6 text-gray-700 transition-transform duration-300 ${
-              isSidebarOpen ? 'rotate-180' : ''
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          className="text-gray-400 hover:text-white transition-colors"
+          aria-label="Toggle Sidebar">
+          <ChevronRight className={isSidebarOpen ? 'rotate-180' : ''} size={28}/>
         </button>
 
         {/* 오른쪽: 알림 + 프로필 */}
         <div className="flex items-center space-x-4">
           {/* 알림 버튼 */}
-          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
+          <button className="relative text-gray-400 hover:text-white transition-colors">
+            <Bell size={24}/>
             {/* 알림 뱃지 */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
           {/* 프로필 드롭다운 */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center space-x-3 p-2 rounded-lg text-gray-300 hover:text-white transition-colors"
             >
               {/* 프로필 이미지 */}
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {connectionInfo.id ? connectionInfo.id.charAt(0).toUpperCase() : 'A'}
-                </span>
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                <User size={24} />
               </div>
+
               {/* 사용자 정보 */}
               <div className="text-left hidden md:block">
-                <div className="text-sm font-medium text-gray-700">{connectionInfo.id || 'Admin'}</div>
-                <div className="text-xs text-gray-500">관리자</div>
+                <div className="text-sm font-medium ">{connectionInfo.id || 'Admin'}</div>
+                {/* <div className="text-xs text-gray-300">관리자</div> */}
               </div>
+
               {/* 화살표 */}
-              <svg
-                className={`w-4 h-4 text-gray-500 transition-transform ${
-                  showProfileMenu ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <ChevronDown size={20} className={`transition-transform ${showProfileMenu ? 'rotate-180' : ''}`}/>
             </button>
 
             {/* 프로필 드롭다운 메뉴 */}
@@ -195,15 +175,15 @@ export default function Header({ onToggleSidebar, isSidebarOpen}) {
             )}
           </div>
         </div>
+
+
       </div>
       {/* 모달들 */}
-            <PasswordChangeModal
-                isOpen={showPasswordModal}
-                onClose={() => setShowPasswordModal(false)}
-                onSubmit={handlePasswordChange}
-            />
-    
-            
+      <PasswordChangeModal
+          isOpen={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          onSubmit={handlePasswordChange}
+      />
     </header>
   );
 }

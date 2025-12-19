@@ -10,33 +10,49 @@ import { sseAPI } from '../api/api';
 
 
 export default function Dashboard() {
-  const [sseData, setSseData] = useState(null);
+  const [sseDataThdList, setSseDataThdList] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
 
   // SSE 연결 (컴포넌트 마운트 시)
   useEffect(() => {
     // SSE 연결 - 기본 메시지 수신
-    const disconnect = sseAPI.connect(
-      '/api/sse/events',  // SSE 엔드포인트 (백엔드 경로에 맞게 수정)
-      (data) => {
-        // 메시지 수신 시 처리
-        console.log('📨 실시간 데이터:', data);
-        setSseData(data);
-        setIsConnected(true);
-      },
-      (error) => {
-        // 에러 발생 시 처리
-        console.error('SSE 연결 에러:', error);
-        setIsConnected(false);
-      }
-    );
+    // const disconnect = sseAPI.connect(
+    //   '/test/stream/events?type=thd',  // SSE 엔드포인트 (백엔드 경로에 맞게 수정)
+    //   (data) => {
+    //     // 메시지 수신 시 처리
+    //     //console.log('📨 실시간 데이터:', data);
 
-    // 컴포넌트 언마운트 시 연결 종료
-    return () => {
-      disconnect();
-      setIsConnected(false);
-    };
+
+
+
+    //     setSseDataThdList(prev=>{
+    //       const updatedList = [...prev, data];
+    //       if (updatedList.length > 50) {
+    //         // 뒤에서부터 50개만 남깁니다.
+    //         return updatedList.slice(-50);
+    //       }
+
+    //       return updatedList;
+    //     })
+    //   },
+    //   (error) => {
+    //     // 에러 발생 시 처리
+    //     console.error('SSE 연결 에러:', error);
+    //     setIsConnected(false);
+    //   }
+    // );
+
+    // // 컴포넌트 언마운트 시 연결 종료
+    // return () => {
+    //   disconnect();
+    //   setIsConnected(false);
+    // };
   }, []); // 빈 배열: 마운트/언마운트 시에만 실행
+
+
+  // useEffect(()=>{
+  //   console.log('sseDataThdList',sseDataThdList)
+  // },[sseDataThdList])
 
   // 그리드 레이아웃 설정
   const layout = [
@@ -75,14 +91,6 @@ export default function Dashboard() {
     { name: 'Vibration', value: 31, color: '#95E1D3' },
   ];
 
-    // 차트 데이터
-  const tempHumData = [
-    { time: '14:50', deviceH: 16, deviceH2: 40 },
-    { time: '16:10', deviceH: 18, deviceH2: 38 },
-    { time: '14:30', deviceH: 20, deviceH2: 42 },
-    { time: '14:59:40', deviceH: 22, deviceH2: 45 },
-  ];
-
   const anomalyData = [
     { name: 'Vibration', value: 12 },
     { name: 'Thermal', value: 8 },
@@ -100,6 +108,48 @@ export default function Dashboard() {
     {name: 'a', value:95, fill:'#FF6B6B'},
   ]
 
+    // 차트 데이터
+  const tempHumData = [
+    { ins_time: '14:50',temp:1, value: {s_1:{a:1,b:2}, s_2:{a:2,b:3}} },
+    { ins_time: '16:10',temp:2, value: {s_1:{a:2,b:4}, s_2:{a:5,b:7}} },
+    
+  ];
+
+  // 1. 색상 자동 생성 함수 (Hsl을 쓰면 겹치지 않게 무지개색으로 뽑기 좋습니다)
+  const getLineColor = (index, total, isTemp) => {
+    const hue = (index * (360 / total)) % 360;
+    // 온도는 좀 더 진하게(S: 70%, L: 50%), 습도는 연하게(S: 40%, L: 70%) 구분
+    return isTemp ? `hsl(${hue}, 70%, 50%)` : `hsl(${hue}, 40%, 75%)`;
+  };
+
+  // 2. 존재하는 모든 장치 ID와 하위 필드(temp, humidity)를 추출하여 변수화
+  const dynamicLines = useMemo(() => {
+    if (sseDataThdList.length === 0) return [];
+
+    const firstEntryValue = sseDataThdList[0].value;
+    const deviceIds = Object.keys(firstEntryValue); // ["deviceId_1", "deviceId_5", ...]
+    
+    return deviceIds.flatMap((deviceId, idx) => {
+      // 숫자만 추출 (이름 표시용)
+      const idNum = deviceId.replace('deviceId_', '');
+      
+      return [
+        {
+          key: `${deviceId}-temp`,
+          dataKey: `value.${deviceId}.temp`,
+          name: `${idNum} Temp`,
+          stroke: getLineColor(idx, deviceIds.length, true),
+        },
+        {
+          key: `${deviceId}-hum`,
+          dataKey: `value.${deviceId}.humidity`,
+          name: `${idNum} Hum`,
+          stroke: getLineColor(idx, deviceIds.length, false),
+        }
+      ];
+    });
+  }, [sseDataThdList]);
+
   return (
       <div ref={containerRef}>
         {mounted && (
@@ -115,6 +165,47 @@ export default function Dashboard() {
             compactType={null}
             preventCollision={false}
           >
+            <CardLayout key="temp-hum" title="TEMP & HUM">
+              <ResponsiveContainer width="100%">
+                <LineChart data={sseDataThdList}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="ins_time" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  {/* 자동 생성된 변수 배열을 map으로 돌려 Line 출력 */}
+                  {dynamicLines.map((line) => (
+                    <Line
+                      key={line.key}
+                      dataKey={line.dataKey}
+                      name={line.name}
+                      stroke={line.stroke}
+                      type="monotone"
+                      strokeWidth={2}
+                      dot={false}
+                      connectNulls={true}
+                      isAnimationActive={false}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </CardLayout>
+
+            {/* <CardLayout key="temp-hum" title="TEMP & HUM">
+              <ResponsiveContainer width="100%">
+                <LineChart data={tempHumData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="time" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                  <Line type="monotone" dataKey="value.temp" stroke="#06b6d4" strokeWidth={2} />
+                  <Line type="monotone" dataKey="value.b" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="value.a" stroke="#06b6d4" strokeWidth={2} />
+                  <Line type="monotone" dataKey="value.b" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="value.a" stroke="#06b6d4" strokeWidth={2} />
+                  <Line type="monotone" dataKey="value.b" stroke="#3b82f6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardLayout> */}
+
+
             <CardLayout key="system-health" title="SYSTEM HEALTH">
               <ResponsiveContainer width="100%" className="border-2 border-red-500">
                 <RadialBarChart
@@ -199,18 +290,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
             </CardLayout>
             
-            <CardLayout key="temp-hum" title="TEMP & HUM">
-              <ResponsiveContainer width="100%">
-                <LineChart data={tempHumData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="time" stroke="#9ca3af" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="deviceH" stroke="#06b6d4" strokeWidth={2} />
-                  <Line type="monotone" dataKey="deviceH2" stroke="#3b82f6" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-
-            </CardLayout>
+            
             
             <CardLayout key="anomaly-chart" title="ANOMALY DETECTION">
               <ResponsiveContainer width="100%">
