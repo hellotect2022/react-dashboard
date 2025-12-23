@@ -1,12 +1,23 @@
 @import "tailwindcss";
 
+/* 스크롤바 숨기기 */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* React Grid Layout - 리사이즈 핸들 항상 보이게 */
 .react-grid-item > .react-resizable-handle {
   position: absolute;
   /* width: 10px !important; */
   /* height: 10px !important; */
-  bottom: 0;
-  right: 0;
+  bottom: 3px;
+  right: 3px;
   cursor: se-resize;
   z-index: 10;
   opacity: 100 !important;
@@ -20,8 +31,8 @@
   bottom: 3px;
   width: 8px !important;
   height: 8px !important;
-  border-right: 1.5px solid rgb(14, 13, 13) !important;
-  border-bottom: 1.5px solid rgb(14, 13, 13) !important;
+  border-right: 1.5px solid rgb(94, 92, 92) !important;
+  border-bottom: 1.5px solid rgb(94, 92, 92) !important;
   opacity: 1 !important;
 }
 

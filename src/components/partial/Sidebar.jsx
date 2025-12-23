@@ -12,6 +12,7 @@ export default function Sidebar({ isOpen }) {
     { id: 'thermal', name: '열화상 (Thermal)', icon: <Flame size={20}/>, path: '/thermal' },
     { id: 'temp-hum', name: '온습도 (Temp & Hum)', icon: <Thermometer size={20}/> , path: '/temp-hum' },
     { id: 'vibration', name: '진동계 (Vibration)', icon: <Activity size={20}/>, path: '/vibration' },
+    { id: 'gems', name: '전력계 (GEMS)', icon: <Activity size={20}/>, path: '/gems' },
     { id: 'settings', name: 'Settings', icon: <Settings size={20}/>, path: '/settings' },
   ];
 

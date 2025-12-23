@@ -9,6 +9,7 @@ const Thermal = lazy(() => import('./pages/Thermal'));
 const TempHum = lazy(() => import('./pages/TempHum'));
 const Vibration = lazy(() => import('./pages/Vibration'));
 const Setting = lazy(() => import('./pages/Setting'));
+const Gems = lazy(() => import('./pages/Gems'));
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/thermal" element={<Thermal />} />
           <Route path="/temp-hum" element={<TempHum />} />
           <Route path="/vibration" element={<Vibration />} />
+          <Route path="/gems" element={<Gems />} />
           <Route path="/settings" element={<Setting />} />
         </Route>
         
